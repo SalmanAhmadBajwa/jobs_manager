@@ -11,7 +11,6 @@ from workflow.models import Job, JobEvent
 from workflow.serializers import JobPricingSerializer, JobSerializer
 from workflow.services.file_service import sync_job_folder
 from workflow.services.job_service import (
-    archive_and_reset_job_pricing,
     get_historical_job_pricings,
     get_job_with_pricings,
     get_latest_job_pricings,
@@ -201,7 +200,6 @@ def edit_job_view_ajax(request, job_id=None):
     return render(request, "jobs/edit_job_ajax.html", context)
 
 
-# Note, recommended to remove the exemption in the future
 @require_http_methods(["POST"])
 def autosave_job_view(request):
     try:

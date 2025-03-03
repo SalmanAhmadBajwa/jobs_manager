@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from concurrent_log_handler import ConcurrentRotatingFileHandler
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -63,6 +64,11 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
+        "xero_console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
         "sql_file": {
             "level": "DEBUG",
             "class": "concurrent_log_handler.ConcurrentRotatingFileHandler",
@@ -87,7 +93,7 @@ LOGGING = {
             "propagate": False,
         },
         "xero": {
-            "handlers": ["xero_file"],
+            "handlers": ["xero_file", "xero_console"],
             "level": "DEBUG",
             "propagate": False,
         },
@@ -121,6 +127,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "workflow.context_processors.debug_mode",
             ],
         },
     },
@@ -218,5 +225,39 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 XERO_CLIENT_ID = os.getenv("XERO_CLIENT_ID", "")
 XERO_CLIENT_SECRET = os.getenv("XERO_CLIENT_SECRET", "")
 XERO_REDIRECT_URI = os.getenv("XERO_REDIRECT_URI", "")
+# Default scopes if not specified in .env
+DEFAULT_XERO_SCOPES = " ".join([
+    "offline_access",
+    "openid",
+    "profile",
+    "email",
+    "accounting.contacts",
+    "accounting.transactions",
+    "accounting.reports.read",
+    "accounting.settings",
+    "accounting.journals.read",
+])
+XERO_SCOPES = os.getenv("XERO_SCOPES", DEFAULT_XERO_SCOPES).split()
 
-DROPBOX_WORKFLOW_FOLDER = os.path.join(os.path.expanduser("~"), "Dropbox/MSM Workflow")
+DROPBOX_WORKFLOW_FOLDER = os.getenv('DROPBOX_WORKFLOW_FOLDER', os.path.join(os.path.expanduser("~"), "Dropbox/MSM Workflow"))
+
+def validate_required_settings():
+    """Validate that all required settings are properly configured."""
+    required_settings = {
+        'SECRET_KEY': SECRET_KEY,
+        'DROPBOX_WORKFLOW_FOLDER': DROPBOX_WORKFLOW_FOLDER,
+        'XERO_CLIENT_ID': XERO_CLIENT_ID,
+        'XERO_CLIENT_SECRET': XERO_CLIENT_SECRET,
+        'XERO_REDIRECT_URI': XERO_REDIRECT_URI,
+    }
+    
+    missing_settings = [key for key, value in required_settings.items() if not value]
+    
+    if missing_settings:
+        raise ImproperlyConfigured(
+            f"The following required settings are missing or empty: {', '.join(missing_settings)}\n"
+            f"Please check your .env file and ensure all required settings are configured."
+        )
+
+# Validate required settings after all settings are loaded
+validate_required_settings()

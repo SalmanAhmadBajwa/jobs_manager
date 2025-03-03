@@ -1,4 +1,5 @@
 {% load static %}
+{% load xero_tags %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -31,12 +32,15 @@
                             <a class="nav-link" href="{% url 'timesheet_overview' %}">Timesheets</a>
                         </li>
                         <li class="nav-item dropdown">
+                            {% check_xero_sync_needed as xero_sync %}
                             <a class="nav-link dropdown-toggle" href="{% url 'xero_index' %}" id="xeroMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Xero
+                                Xero {% if xero_sync.needed %}<span class="badge bg-warning text-dark">!</span>{% endif %}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="xeroMenu">
+                                {% load xero_tags %}
+                                {% get_xero_action as xero_action %}
                                 <li><a class="dropdown-item" href="{% url 'refresh_xero_data' %}">Refresh Xero Data</a></li>
-                                <!-- Add more options here as needed -->
+                                <li><a class="dropdown-item" href="{% url xero_action.url_name %}">{{ xero_action.action_text }}</a></li>
                             </ul>
                         </li>
                         <li class="nav-item dropdown">
@@ -49,9 +53,17 @@
                             </ul>
                         </li>
                         {% if user.is_staff %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'admin:index' %}">Admin</a>
-                            </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Admin
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminMenu">
+                                {% comment %} <li><a class="dropdown-item" href="{% url 'export_to_ims' %}">Export to IMS</a></li> {% endcomment %}
+                                <li><a class="dropdown-item" id="monthEndButton" style="cursor:pointer;">Run Month End</a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:workflow_staff_changelist' %}">Edit Staff</a></li>
+                                <li><a class="dropdown-item" href="{% url 'admin:workflow_companydefaults_changelist' %}">Edit Company Defaults</a></li>
+                            </ul>
+                        </li>
                         {% endif %}
                     {% endif %}
                 </ul>
@@ -77,14 +89,28 @@
     </nav>
 
     <div class="container mt-4 mb-4">
+        {% check_xero_sync_needed as xero_sync %}
+        {% if xero_sync.needed %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            {{ xero_sync.message }}
+            <a href="{% url 'refresh_xero_data' %}" class="alert-link">Click here to sync now</a>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endif %}
+
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
         {% block content %}{% endblock %}
     </div>
-    <script src="{% static 'js/time_conversion.js' %}"></script>
-    <script type="module" src="{% static 'js/timesheet/timesheet_entry/messages.js' %}"></script>
-
-
-    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    {% block extra_js %}{% endblock %}
 
     <div class="modal fade" id="alert-container" tabindex="-1" aria-labelledby="alert-modal-label" aria-hidden="true">
         <div class="modal-dialog">
@@ -103,6 +129,14 @@
         </div>
     </div>
 
+    <script>
+        window.DEBUG_MODE = {{ DEBUG_MODE|lower }};
+    </script>
+    <script src="{% static 'js/env.js' %}"></script>
+    <script src="{% static 'js/time_conversion.js' %}"></script>
+    <script type="module" src="{% static 'js/timesheet/timesheet_entry/messages.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 
 </html>

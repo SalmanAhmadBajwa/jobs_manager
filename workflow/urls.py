@@ -69,7 +69,10 @@ urlpatterns = [
         edit_job_view_ajax.add_job_event,
         name="add-event",
     ),
-    path("api/job-files/", JobFileView.as_view(), name="job-files"),  # For POST/upload
+    path("api/job-files/", JobFileView.as_view(), name="job-files"),  # For POST/PUT
+    path(
+        "api/job-files/<int:job_number>", JobFileView.as_view(), name="get-job-file"
+    ),  # To check if file already exists
     path(
         "api/job-files/<path:file_path>", JobFileView.as_view(), name="serve-job-file"
     ),  # For GET/download
@@ -94,6 +97,11 @@ urlpatterns = [
         name="refresh_xero_data",
     ),
     path(
+        "api/xero/disconnect/",
+        xero_view.xero_disconnect,
+        name="xero_disconnect",
+    ),
+    path(
         "api/xero/create_invoice/<uuid:job_id>",
         xero_view.create_xero_invoice,
         name="create_invoice",
@@ -101,17 +109,17 @@ urlpatterns = [
     path(
         "api/xero/delete_invoice/<uuid:job_id>",
         xero_view.delete_xero_invoice,
-        name="delete_invoice"
+        name="delete_invoice",
     ),
     path(
         "api/xero/create_quote/<uuid:job_id>",
         xero_view.create_xero_quote,
         name="create_quote",
     ),
-        path(
+    path(
         "api/xero/delete_quote/<uuid:job_id>",
         xero_view.delete_xero_quote,
-        name="delete_quote"
+        name="delete_quote",
     ),
     # Other URL patterns
     path("clients/", client_view.ClientListView.as_view(), name="list_clients"),
@@ -175,6 +183,11 @@ urlpatterns = [
         "timesheets/overview/<str:start_date>/",
         time_overview_view.TimesheetOverviewView.as_view(),
         name="timesheet_overview_with_date",
+    ),
+    path(
+        "timesheets/export_to_ims/",
+        time_overview_view.TimesheetOverviewView.as_view(),
+        name="timesheet_export_to_ims",
     ),
     # Edit timesheet entries for a specific day
     path(
