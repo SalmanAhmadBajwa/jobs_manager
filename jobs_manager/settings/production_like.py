@@ -4,6 +4,8 @@ from .base import *  # noqa: F403
 from .local import STATIC_ROOT as LOCAL_STATIC_ROOT
 
 # Production like is for things like ngnix, Redis, celery, etc.
+# NOTE: With Redis and Celery removed, I believe that local and production are now the same
+# I've kept this because it was working previously but I odn't think it matters going forward
 load_dotenv(BASE_DIR / ".env")
 
 DEBUG = False
@@ -18,6 +20,9 @@ MIDDLEWARE = [
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.getenv("STATIC_ROOT", LOCAL_STATIC_ROOT)
+
+# Use ManifestStaticFilesStorage to add hashes to static files
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
 
 # Security configs
 SESSION_COOKIE_SECURE = True
@@ -38,19 +43,10 @@ CSRF_TRUSTED_ORIGINS += [
     if host not in ["localhost", "127.0.0.1"]
 ]
 
-# Cache configs (Currently using Redis for persistent caching)
+# Cache configs
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "TIMEOUT": 3600,
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
     }
 }
-
-# Celery configs
-CELERY_BROKER_URL = "redis://localhost:6379/0"  # Redis connection
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"

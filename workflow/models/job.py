@@ -56,7 +56,9 @@ class Job(models.Model):
     order_number: str | None = models.CharField(
         max_length=100, null=True, blank=True
     )
-    contact_person: str = models.CharField(max_length=100)
+    contact_person: str | None = models.CharField(
+        max_length=100, null=True, blank=True
+    )
     contact_phone: str | None = models.CharField(
         max_length=15,
         null=True,
@@ -97,6 +99,7 @@ class Job(models.Model):
     # Shop job has no client (client_id is None)
 
     job_is_valid = models.BooleanField(default=False)  # type: ignore
+    coolected: bool = models.BooleanField(default=False)  # type: ignore
     paid: bool = models.BooleanField(default=False)  # type: ignore
     charge_out_rate = (
         models.DecimalField(  # TODO: This needs to be added to the edit job form
@@ -148,6 +151,8 @@ class Job(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     history: HistoricalRecords = HistoricalRecords()
+
+    complex_job = models.BooleanField(default=False)  # type: ignore
 
     class Meta:
         ordering = ["job_number"]

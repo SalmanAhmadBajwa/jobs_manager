@@ -64,6 +64,21 @@ urlpatterns = [
         edit_job_view_ajax.api_fetch_status_values,
         name="fetch_status_values",
     ),
+        path(
+        "api/job/<uuid:job_id>/delete/",
+        edit_job_view_ajax.delete_job,
+        name="delete_job",
+    ),
+    path(
+        "api/job/toggle-complex-job/",
+        edit_job_view_ajax.toggle_complex_job,
+        name="toggle_complex_job"
+    ),
+    path(
+        "api/job/toggle-pricing-type/",
+        edit_job_view_ajax.toggle_pricing_type,
+        name="toggle_pricing_type"
+    ),
     path(
         "api/job-event/<uuid:job_id>/add-event/",
         edit_job_view_ajax.add_job_event,
@@ -95,6 +110,11 @@ urlpatterns = [
         "api/xero/refresh/",
         xero_view.refresh_xero_data,
         name="refresh_xero_data",
+    ),
+    path(
+        "api/xero/disconnect/",
+        xero_view.xero_disconnect,
+        name="xero_disconnect",
     ),
     path(
         "api/xero/create_invoice/<uuid:job_id>",
@@ -178,6 +198,11 @@ urlpatterns = [
         "timesheets/overview/<str:start_date>/",
         time_overview_view.TimesheetOverviewView.as_view(),
         name="timesheet_overview_with_date",
+    ),
+    path(
+        "timesheets/export_to_ims/",
+        time_overview_view.TimesheetOverviewView.as_view(),
+        name="timesheet_export_to_ims",
     ),
     # Edit timesheet entries for a specific day
     path(
